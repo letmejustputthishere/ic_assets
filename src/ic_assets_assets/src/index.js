@@ -1,6 +1,7 @@
 import { ic_assets } from "../../declarations/ic_assets";
 
 let file;
+let batchId;
 
 const uploadChunk = async ({batch_id, chunk}) => ic_assets.create_chunk({
   batch_id,
@@ -8,6 +9,8 @@ const uploadChunk = async ({batch_id, chunk}) => ic_assets.create_chunk({
 })
 
 const upload = async () => {
+  console.log('start upload');
+
   if (!file) {
     console.error('No file selected');
     return;
@@ -36,10 +39,30 @@ const upload = async () => {
 
   await ic_assets.commit_batch({
     batch_id,
-    chunk_ids: chunkIds.map(({chunk_id}) => chunk_id)
+    chunk_ids: chunkIds.map(({chunk_id}) => chunk_id),
+    content_type: file.type
   })
 
+  batchId = batch_id;
+
   console.log('uploaded');
+}
+
+const download = () => {
+  console.log('download', batchId);
+
+  if (!batchId) {
+    return;
+  }
+
+  const newImage = document.createElement('img');
+  newImage.src = `http://localhost:8000/${batchId}?canisterId=rrkah-fqaaa-aaaaa-aaaaq-cai`;
+
+  const img = document.querySelector('section:last-of-type img');
+  img?.parentElement.removeChild(img);
+
+  const section = document.querySelector('section:last-of-type');
+  section?.appendChild(newImage);
 }
 
 const input = document.querySelector('input');
@@ -47,5 +70,8 @@ input?.addEventListener('change', ($event) => {
   file = $event.target.files?.[0];
 });
 
-const btn = document.querySelector('button');
-btn?.addEventListener('click', upload);
+const btnUpload = document.querySelector('button.upload');
+btnUpload?.addEventListener('click', upload);
+
+const btnDownload = document.querySelector('button.download');
+btnDownload?.addEventListener('click', download);

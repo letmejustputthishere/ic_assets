@@ -14,7 +14,11 @@ export interface HttpResponse {
 }
 export interface _SERVICE {
   'commit_batch' : (
-      arg_0: { 'batch_id' : bigint, 'chunk_ids' : Array<bigint> },
+      arg_0: {
+        'batch_id' : bigint,
+        'content_type' : string,
+        'chunk_ids' : Array<bigint>,
+      },
     ) => Promise<undefined>,
   'create_batch' : () => Promise<{ 'batch_id' : bigint }>,
   'create_chunk' : (arg_0: Chunk) => Promise<{ 'chunk_id' : bigint }>,

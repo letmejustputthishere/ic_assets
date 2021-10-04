@@ -17,7 +17,13 @@ export const idlFactory = ({ IDL }) => {
   });
   return IDL.Service({
     'commit_batch' : IDL.Func(
-        [IDL.Record({ 'batch_id' : IDL.Nat, 'chunk_ids' : IDL.Vec(IDL.Nat) })],
+        [
+          IDL.Record({
+            'batch_id' : IDL.Nat,
+            'content_type' : IDL.Text,
+            'chunk_ids' : IDL.Vec(IDL.Nat),
+          }),
+        ],
         [],
         [],
       ),

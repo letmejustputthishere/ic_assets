@@ -4,6 +4,8 @@ import Nat "mo:base/Nat";
 import Hash "mo:base/Hash";
 import Array "mo:base/Array";
 import Time "mo:base/Time";
+import Blob "mo:base/Blob";
+import Iter "mo:base/Iter";
 
 actor Assets {
 
@@ -15,7 +17,7 @@ actor Assets {
         headers : [HeaderField];
     };
     private type HttpResponse = {
-        body : Blob;
+        body : [Nat8];
         headers : [HeaderField];
         status_code : Nat16;
     };
@@ -36,19 +38,44 @@ actor Assets {
         // TODO do we need sha256         : [Nat8]; ?
     };
 
+    private type Asset = {
+        encoding: AssetEncoding;
+        content_type: Text;
+    };
+
     private let chunks: HashMap.HashMap<Nat, Chunk> = HashMap.HashMap<Nat, Chunk>(
         0, Nat.equal, Hash.hash,
     );
 
-    private let assets: HashMap.HashMap<Nat, AssetEncoding> = HashMap.HashMap<Nat, AssetEncoding>(
-        0, Nat.equal, Hash.hash,
+    private let assets: HashMap.HashMap<Text, Asset> = HashMap.HashMap<Text, Asset>(
+        0, Text.equal, Text.hash,
     );
 
     public shared query({caller}) func http_request(
-        r : HttpRequest,
+        request : HttpRequest,
     ) : async HttpResponse {
+        if (request.method == "GET") {
+            // remove ?canisterId=.... from /1?canisterId=....
+            let split: Iter.Iter<Text> = Text.split(request.url, #char '?');
+            let key: Text = Iter.toArray(split)[0];
+
+            let asset: ?Asset = assets.get(key);
+
+            switch (asset) {
+                case (?{content_type: Text; encoding: AssetEncoding;}) {
+                    return {
+                        body = encoding.content_chunks[0];
+                        headers = [ ("content-type", content_type) ];
+                        status_code = 200;
+                    };
+                };
+                case null {
+                };
+            };
+        };
+
         return {
-            body = Text.encodeUtf8("Hello World!");
+            body = Blob.toArray(Text.encodeUtf8(request.url));
             headers = [];
             status_code = 200;
         };
@@ -72,8 +99,9 @@ actor Assets {
     };
 
     public shared({caller}) func commit_batch(
-        {batch_id: Nat; chunk_ids: [Nat]} : {
+        {batch_id: Nat; chunk_ids: [Nat]; content_type: Text;} : {
             batch_id: Nat;
+            content_type: Text;
             chunk_ids: [Nat]
         },
     ) : async () {
@@ -95,11 +123,14 @@ actor Assets {
             var total_length = 0;
             for (chunk in content_chunks.vals()) total_length += chunk.size();    
 
-            assets.put(batch_id, {
-                modified  = Time.now();
-                content_chunks;
-                certified = false;
-                total_length
+            assets.put(Text.concat("/", Nat.toText(batch_id)), {
+                content_type = content_type;
+                encoding = {
+                    modified  = Time.now();
+                    content_chunks;
+                    certified = false;
+                    total_length
+                };
             });
          };
     };
