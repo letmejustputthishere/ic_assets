@@ -1,0 +1,32 @@
+type HttpResponse = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   status_code: nat16;
+ };
+type HttpRequest = 
+ record {
+   body: vec nat8;
+   headers: vec HeaderField;
+   method: text;
+   url: text;
+ };
+type HeaderField = 
+ record {
+   text;
+   text;
+ };
+type Chunk = 
+ record {
+   batch_id: nat;
+   content: vec nat8;
+ };
+service : {
+  commit_batch: (record {
+                   batch_id: nat;
+                   chunk_ids: vec nat;
+                 }) -> ();
+  create_batch: () -> (record {batch_id: nat;});
+  create_chunk: (Chunk) -> (record {chunk_id: nat;});
+  http_request: (HttpRequest) -> (HttpResponse) query;
+}

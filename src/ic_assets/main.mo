@@ -54,7 +54,7 @@ actor Assets {
         };
     };
 
-    public shared({caller}) func create_batch({}) : async {
+    public shared({caller}) func create_batch() : async {
         batch_id : Nat
     } {
         nextBatchID := nextBatchID + 1;
