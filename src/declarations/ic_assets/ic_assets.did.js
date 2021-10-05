@@ -12,7 +12,9 @@ export const idlFactory = ({ IDL }) => {
   });
   const StreamingCallbackToken = IDL.Record({
     'key' : IDL.Text,
+    'sha256' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'index' : IDL.Nat,
+    'content_encoding' : IDL.Text,
   });
   const StreamingStrategy = IDL.Variant({
     'Callback' : IDL.Record({

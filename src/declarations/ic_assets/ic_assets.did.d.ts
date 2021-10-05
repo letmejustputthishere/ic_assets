@@ -14,7 +14,12 @@ export interface HttpResponse {
   'status_code' : number,
 }
 export interface StreamingCallbackHttpResponse { 'body' : Array<number> }
-export interface StreamingCallbackToken { 'key' : string, 'index' : bigint }
+export interface StreamingCallbackToken {
+  'key' : string,
+  'sha256' : [] | [Array<number>],
+  'index' : bigint,
+  'content_encoding' : string,
+}
 export type StreamingStrategy = {
     'Callback' : {
       'token' : StreamingCallbackToken,

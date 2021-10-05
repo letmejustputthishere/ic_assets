@@ -36,7 +36,9 @@ actor Assets {
 
     private type StreamingCallbackToken = {
         key : Text;
+        sha256 : ?[Nat8];
         index : Nat;
+        content_encoding : Text;
     };
 
     public type StreamingCallbackHttpResponse = {
@@ -171,12 +173,16 @@ actor Assets {
         Debug.print(debug_show(encoding.content_chunks.size()));
         Debug.print(debug_show(key));
 
+        // TODO encoding and sha
+
         if (chunk_index + 1 >= encoding.content_chunks.size()) {
             null;
         } else {
             ?{
                 key;
                 index = chunk_index + 1;
+                content_encoding = "";
+                sha256 = null;
             };
         };
     };
