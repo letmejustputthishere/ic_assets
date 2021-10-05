@@ -43,6 +43,7 @@ actor Assets {
 
     public type StreamingCallbackHttpResponse = {
         body : [Nat8];
+        token: ?StreamingCallbackToken;
     };
 
     private var nextBatchID: Nat = 0;
@@ -88,7 +89,7 @@ actor Assets {
                 case (?{content_type: Text; encoding: AssetEncoding;}) {
                     return {
                         body = encoding.content_chunks[0];
-                        headers = [ ("Content-Type", content_type), 
+                        headers = [ ("Content-Type", content_type),
                                     ("accept-ranges", "bytes"),
                                     ("cache-control", "private, max-age=0") ];
                         status_code = 200;
@@ -148,11 +149,14 @@ actor Assets {
         switch (assets.get(st.key)) {
             case (null) throw Error.reject("key not found: " # st.key);
             case (? asset) {
+
+                Debug.print(debug_show("Return next chunk"));
+
                 return {
-                        token = create_token(
+                    token = create_token(
                         st.key,
                         st.index,
-                        asset, 
+                        asset,
                         asset.encoding,
                     );
                     body  = asset.encoding.content_chunks[st.index];
@@ -227,7 +231,7 @@ actor Assets {
 
          if (content_chunks.size() > 0) {
             var total_length = 0;
-            for (chunk in content_chunks.vals()) total_length += chunk.size();    
+            for (chunk in content_chunks.vals()) total_length += chunk.size();
 
             assets.put(Text.concat("/", Nat.toText(batch_id)), {
                 content_type = content_type;
@@ -242,4 +246,3 @@ actor Assets {
     };
 
 };
- 

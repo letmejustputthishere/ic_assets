@@ -29,6 +29,7 @@ export const idlFactory = ({ IDL }) => {
     'status_code' : IDL.Nat16,
   });
   const StreamingCallbackHttpResponse = IDL.Record({
+    'token' : IDL.Opt(StreamingCallbackToken),
     'body' : IDL.Vec(IDL.Nat8),
   });
   return IDL.Service({

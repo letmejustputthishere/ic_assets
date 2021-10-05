@@ -13,7 +13,10 @@ export interface HttpResponse {
   'streaming_strategy' : [] | [StreamingStrategy],
   'status_code' : number,
 }
-export interface StreamingCallbackHttpResponse { 'body' : Array<number> }
+export interface StreamingCallbackHttpResponse {
+  'token' : [] | [StreamingCallbackToken],
+  'body' : Array<number>,
+}
 export interface StreamingCallbackToken {
   'key' : string,
   'sha256' : [] | [Array<number>],
