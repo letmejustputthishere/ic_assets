@@ -22,7 +22,7 @@ const upload = async () => {
 
   const promises = [];
 
-  const chunkSize = 2000000;
+  const chunkSize = 700000;
 
   for (let start = 0; start < file.size; start += chunkSize) {
     const chunk = file.slice(start, start + chunkSize + 1);
