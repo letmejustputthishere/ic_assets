@@ -78,6 +78,12 @@ actor Assets {
     public shared query({caller}) func http_request(
         request : HttpRequest,
     ) : async HttpResponse {
+
+        for ((k, v) in request.headers.vals()) {
+            Debug.print(debug_show(k));
+            Debug.print(debug_show(v));
+        };
+
         if (request.method == "GET") {
             // remove ?canisterId=.... from /1?canisterId=....
             let split: Iter.Iter<Text> = Text.split(request.url, #char '?');
@@ -185,7 +191,7 @@ actor Assets {
             ?{
                 key;
                 index = chunk_index + 1;
-                content_encoding = "";
+                content_encoding = "gzip";
                 sha256 = null;
             };
         };
