@@ -6,6 +6,9 @@ import Array "mo:base/Array";
 import Time "mo:base/Time";
 import Blob "mo:base/Blob";
 import Iter "mo:base/Iter";
+import Error "mo:base/Error";
+
+import Debug "mo:base/Debug";
 
 actor Assets {
 
@@ -20,6 +23,23 @@ actor Assets {
         body : [Nat8];
         headers : [HeaderField];
         status_code : Nat16;
+        streaming_strategy : ?StreamingStrategy;
+    };
+
+    private type StreamingStrategy = {
+        #Callback : {
+            token : StreamingCallbackToken;
+            callback : shared query StreamingCallbackToken -> async StreamingCallbackHttpResponse;
+        };
+    };
+
+    private type StreamingCallbackToken = {
+        key : Text;
+        index : Nat;
+    };
+
+    public type StreamingCallbackHttpResponse = {
+        body : [Nat8];
     };
 
     private var nextBatchID: Nat = 0;
@@ -65,8 +85,13 @@ actor Assets {
                 case (?{content_type: Text; encoding: AssetEncoding;}) {
                     return {
                         body = encoding.content_chunks[0];
-                        headers = [ ("content-type", content_type) ];
+                        headers = [ ("Content-Type", content_type), 
+                                    ("accept-ranges", "bytes"),
+                                    ("cache-control", "private, max-age=0") ];
                         status_code = 200;
+                        streaming_strategy = create_strategy(
+                            key, 0, {content_type; encoding;}, encoding,
+                        );
                     };
                 };
                 case null {
@@ -78,6 +103,69 @@ actor Assets {
             body = Blob.toArray(Text.encodeUtf8(request.url));
             headers = [];
             status_code = 200;
+            streaming_strategy = null;
+        };
+    };
+
+    private func create_strategy(
+        key           : Text,
+        index         : Nat,
+        asset         : Asset,
+        encoding      : AssetEncoding,
+    ) : ?StreamingStrategy {
+        switch (create_token(key, index, asset, encoding)) {
+            case (null) { null };
+            case (? token) {
+                ?#Callback({
+                    token;
+                    callback = http_request_streaming_callback;
+                });
+            };
+        };
+    };
+
+    public shared query({caller}) func http_request_streaming_callback(
+        st : StreamingCallbackToken,
+    ) : async StreamingCallbackHttpResponse {
+
+        Debug.print(debug_show("A"));
+        Debug.print(debug_show(st.index));
+
+        switch (assets.get(st.key)) {
+            case (null) throw Error.reject("key not found: " # st.key);
+            case (? asset) {
+                return {
+                        token = create_token(
+                        st.key,
+                        st.index,
+                        asset, 
+                        asset.encoding,
+                    );
+                    body  = asset.encoding.content_chunks[st.index];
+                };
+            };
+        };
+    };
+
+    private func create_token(
+        key              : Text,
+        chunk_index      : Nat,
+        asset            : Asset,
+        encoding         : AssetEncoding,
+    ) : ?StreamingCallbackToken {
+
+        Debug.print(debug_show("B"));
+        Debug.print(debug_show(chunk_index));
+        Debug.print(debug_show(encoding.content_chunks.size()));
+        Debug.print(debug_show(key));
+
+        if (chunk_index + 1 >= encoding.content_chunks.size()) {
+            null;
+        } else {
+            ?{
+                key;
+                index = chunk_index + 1;
+            };
         };
     };
 
@@ -102,7 +190,7 @@ actor Assets {
         {batch_id: Nat; chunk_ids: [Nat]; content_type: Text;} : {
             batch_id: Nat;
             content_type: Text;
-            chunk_ids: [Nat]
+            chunk_ids: [Nat];
         },
     ) : async () {
          var content_chunks : [[Nat8]] = [];

@@ -1,8 +1,23 @@
+type StreamingStrategy = variant {
+                           Callback:
+                            record {
+                              callback:
+                               func (StreamingCallbackToken) ->
+                                (StreamingCallbackHttpResponse) query;
+                              token: StreamingCallbackToken;
+                            };};
+type StreamingCallbackToken = 
+ record {
+   index: nat;
+   key: text;
+ };
+type StreamingCallbackHttpResponse = record {body: vec nat8;};
 type HttpResponse = 
  record {
    body: vec nat8;
    headers: vec HeaderField;
    status_code: nat16;
+   streaming_strategy: opt StreamingStrategy;
  };
 type HttpRequest = 
  record {
@@ -31,4 +46,6 @@ service : {
   create_batch: () -> (record {batch_id: nat;});
   create_chunk: (Chunk) -> (record {chunk_id: nat;});
   http_request: (HttpRequest) -> (HttpResponse) query;
+  http_request_streaming_callback: (StreamingCallbackToken) ->
+   (StreamingCallbackHttpResponse) query;
 }
