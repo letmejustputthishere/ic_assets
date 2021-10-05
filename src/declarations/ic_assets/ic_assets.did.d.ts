@@ -19,7 +19,6 @@ export interface StreamingCallbackHttpResponse {
 }
 export interface StreamingCallbackToken {
   'key' : string,
-  'sha256' : [] | [Array<number>],
   'index' : bigint,
   'content_encoding' : string,
 }

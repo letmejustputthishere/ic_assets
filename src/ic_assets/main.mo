@@ -36,7 +36,8 @@ actor Assets {
 
     private type StreamingCallbackToken = {
         key : Text;
-        sha256 : ?[Nat8];
+        // TODO: do we need sha256 ?
+        // sha256 : ?[Nat8];
         index : Nat;
         content_encoding : Text;
     };
@@ -192,7 +193,6 @@ actor Assets {
                 key;
                 index = chunk_index + 1;
                 content_encoding = "gzip";
-                sha256 = null;
             };
         };
     };
