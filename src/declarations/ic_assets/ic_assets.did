@@ -1,9 +1,7 @@
 type StreamingStrategy = variant {
                            Callback:
                             record {
-                              callback:
-                               func (StreamingCallbackToken) ->
-                                (StreamingCallbackHttpResponse) query;
+                              callback: func () -> ();
                               token: StreamingCallbackToken;
                             };};
 type StreamingCallbackToken = 

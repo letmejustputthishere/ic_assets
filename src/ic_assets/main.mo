@@ -7,6 +7,7 @@ import Time "mo:base/Time";
 import Blob "mo:base/Blob";
 import Iter "mo:base/Iter";
 import Error "mo:base/Error";
+import Principal "mo:base/Principal";
 
 import Debug "mo:base/Debug";
 
@@ -29,7 +30,7 @@ actor Assets {
     private type StreamingStrategy = {
         #Callback : {
             token : StreamingCallbackToken;
-            callback : shared query StreamingCallbackToken -> async StreamingCallbackHttpResponse;
+            callback : shared () -> async ();
         };
     };
 
@@ -116,9 +117,20 @@ actor Assets {
         switch (create_token(key, index, asset, encoding)) {
             case (null) { null };
             case (? token) {
-                ?#Callback({
+                let self: Principal = Principal.fromActor(Assets);
+                let canisterId: Text = Principal.toText(self);
+
+                Debug.print(debug_show("E"));
+                Debug.print(debug_show(canisterId));
+
+                // Hack: https://forum.dfinity.org/t/cryptic-error-from-icx-proxy/6944/8
+                // Issue: https://github.com/dfinity/candid/issues/273
+
+                let canister = actor (canisterId) : actor { http_request_streaming_callback : shared () -> async () };
+
+                return ?#Callback({
                     token;
-                    callback = http_request_streaming_callback;
+                    callback = canister.http_request_streaming_callback;
                 });
             };
         };

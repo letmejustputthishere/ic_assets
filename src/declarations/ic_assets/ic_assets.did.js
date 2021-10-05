@@ -14,17 +14,10 @@ export const idlFactory = ({ IDL }) => {
     'key' : IDL.Text,
     'index' : IDL.Nat,
   });
-  const StreamingCallbackHttpResponse = IDL.Record({
-    'body' : IDL.Vec(IDL.Nat8),
-  });
   const StreamingStrategy = IDL.Variant({
     'Callback' : IDL.Record({
       'token' : StreamingCallbackToken,
-      'callback' : IDL.Func(
-          [StreamingCallbackToken],
-          [StreamingCallbackHttpResponse],
-          ['query'],
-        ),
+      'callback' : IDL.Func([], [], []),
     }),
   });
   const HttpResponse = IDL.Record({
@@ -32,6 +25,9 @@ export const idlFactory = ({ IDL }) => {
     'headers' : IDL.Vec(HeaderField),
     'streaming_strategy' : IDL.Opt(StreamingStrategy),
     'status_code' : IDL.Nat16,
+  });
+  const StreamingCallbackHttpResponse = IDL.Record({
+    'body' : IDL.Vec(IDL.Nat8),
   });
   return IDL.Service({
     'commit_batch' : IDL.Func(
