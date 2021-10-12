@@ -111,9 +111,9 @@ actor Assets {
         };
 
         return {
-            body = Blob.toArray(Text.encodeUtf8(request.url));
+            body = Blob.toArray(Text.encodeUtf8("Permission denied. Could not perform this operation"));
             headers = [];
-            status_code = 200;
+            status_code = 403;
             streaming_strategy = null;
         };
     };
