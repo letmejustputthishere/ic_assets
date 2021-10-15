@@ -2,9 +2,11 @@
 
 simplistic ic assets test
 
-# references
+# credits
 
 https://github.com/aviate-labs/asset-storage.mo/
+
+# references
 
 https://forum.dfinity.org/t/ic-management-create-canister-type-asset/6703/6
 
